@@ -3,12 +3,12 @@ import type { Student } from './students';
 export async function createBibPdf(students: Student[], perPage: 2 | 4, logoUrl: string) {
   if (!students.length) throw new Error('Aucun élève à imprimer.');
   const { jsPDF } = await import('jspdf');
-  const logo = new Image();
-  logo.crossOrigin = 'anonymous';
-  await new Promise<void>((resolve, reject) => {
-    logo.onload = () => resolve();
-    logo.onerror = () => reject(new Error('La mascotte ne peut pas être chargée. Réessayez avant de générer les dossards.'));
-    logo.src = logoUrl;
+  // La mascotte est décorative : son absence ne doit jamais bloquer l’export PDF.
+  const logo = await new Promise<HTMLImageElement | null>((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => resolve(null);
+    image.src = logoUrl;
   });
   await document.fonts.ready;
   const pdf = new jsPDF({ orientation: perPage === 4 ? 'landscape' : 'portrait', unit: 'mm', format: 'a4', compress: true });
@@ -40,7 +40,7 @@ export async function createBibPdf(students: Student[], perPage: 2 | 4, logoUrl:
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.drawImage(logo, 60, 40, 150, 150 * logo.height / logo.width);
+    if (logo) ctx.drawImage(logo, 60, 40, 150, 150 * logo.height / logo.width);
     ctx.fillStyle = '#191c22';
     fitText('CROSS DU COLLÈGE', 30, 115, '600');
     fitText(student.bib, Math.min(390, canvas.height * 0.43), canvas.height * 0.48, '800');
