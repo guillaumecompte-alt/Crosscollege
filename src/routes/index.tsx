@@ -3,17 +3,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowDownToLine, ArrowRight, Check, CheckCircle2, ChevronLeft, ChevronRight, FileSpreadsheet, Flag, LoaderCircle, Lock, LogOut, Printer, RefreshCw, Search, ShieldCheck, Timer, Trophy, Upload, Users, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowRight, Check, CheckCircle2, ChevronLeft, ChevronRight, FileSpreadsheet, Flag, LoaderCircle, Lock, LogOut, Printer, RefreshCw, Search, ShieldCheck, Timer, Trophy, Trash2, Upload, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { AuthPanel } from '@/components/auth-panel';
 import { AppHeader } from '@/components/app-header';
 import { OfflineBanner } from '@/components/offline-banner';
 import { useAuth } from '@/hooks/useAuth';
-import { getRoster, saveRoster, type Roster } from '@/lib/roster.functions';
+import { clearRoster, getRoster, saveRoster, type Roster } from '@/lib/roster.functions';
 import { readStudents, downloadTemplate } from '@/lib/students';
 import { createBibPdf } from '@/lib/bib-pdf';
-import { fetchRosterWithCache, isNetworkError } from '@/lib/offline';
+import { cacheSnapshot, fetchRosterWithCache, isNetworkError } from '@/lib/offline';
 import { supabase } from '@/integrations/supabase/client';
 const mascotUrl = '/mascotte-cross.png';
 
@@ -39,6 +40,7 @@ function Index() {
   const [errorDescription, setErrorDescription] = useState('Corrigez les lignes indiquées puis réessayez.');
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [search, setSearch] = useState('');
@@ -51,6 +53,7 @@ function Index() {
   const rosterKey = useMemo(() => ['roster', session?.user.id ?? 'anon'], [session?.user.id]);
   const fetchRoster = useServerFn(getRoster);
   const persistRoster = useServerFn(saveRoster);
+  const clearSavedRoster = useServerFn(clearRoster);
   const roster = useQuery({
     queryKey: rosterKey, enabled: !!session,
     queryFn: () => fetchRosterWithCache(session!.user.id, () => fetchRoster()),
@@ -102,6 +105,28 @@ function Index() {
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = '';
+    }
+  }
+
+  async function clearStudentList() {
+    if (!session || clearing) return;
+    setClearing(true);
+    setErrors([]);
+    try {
+      await clearSavedRoster();
+      const emptyRoster: Roster = { students: [], sourceFile: null, savedAt: null };
+      queryClient.setQueryData<Roster>(rosterKey, emptyRoster);
+      cacheSnapshot(session.user.id, { roster: emptyRoster });
+      setSearch('');
+      setClassFilter('all');
+      setPage(0);
+      toast.success("La liste des élèves a été effacée.");
+    } catch (error) {
+      setErrorTitle("La base de données n’a pas été effacée.");
+      setErrorDescription("La liste enregistrée est conservée. Vérifiez la connexion puis réessayez.");
+      setErrors([error instanceof Error ? error.message : "Impossible d'effacer la liste des élèves."]);
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -161,7 +186,7 @@ function Index() {
               <div className="file-columns flex items-center gap-3 mt-4"><FileSpreadsheet size={17} className="shrink-0 text-muted-foreground" /><div><span className="text-xs font-semibold">Colonnes reconnues grâce aux en-têtes</span><p className="text-[11px] text-muted-foreground mt-1">N° de dossard <span>·</span> NOM <span>·</span> Prénom <span>·</span> Classe <span>·</span> Sexe (M / F)</p></div></div>
             </section>
 
-            <section className="mt-8"><div className="section-title-row"><div className="flex items-center gap-2"><h2>Liste des élèves</h2><span className="count-badge">{students.length}</span></div><span className="text-xs text-muted-foreground">{students.length ? 'Liste enregistrée' : 'Aucune liste importée'}</span></div>
+            <section className="mt-8"><div className="section-title-row flex-wrap"><div className="flex items-center gap-2"><h2>Liste des élèves</h2><span className="count-badge">{students.length}</span></div><div className="flex flex-wrap items-center gap-3"><span className="text-xs text-muted-foreground">{students.length ? 'Liste enregistrée' : 'Aucune liste importée'}</span>{students.length > 0 && <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" size="sm" disabled={clearing || saving || busy}><Trash2 /> Effacer la base de données</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Effacer la base de données ?</AlertDialogTitle><AlertDialogDescription>Cette action supprimera définitivement les {students.length.toLocaleString('fr')} élèves de ta liste enregistrée ainsi que le nom du fichier importé. Elle concerne uniquement la liste d’élèves de ton compte. Les courses, chronos et résultats ne seront pas supprimés.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Annuler</AlertDialogCancel><AlertDialogAction disabled={clearing} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => void clearStudentList()}>{clearing ? 'Suppression…' : 'Oui, effacer la liste'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>}</div></div>
               <div className="flex gap-3 mb-4"><div className="relative flex-1"><Search size={16} className="absolute left-3 top-3 text-muted-foreground" /><Input className="pl-9 h-10 bg-card text-xs" placeholder="Rechercher un élève ou un dossard…" aria-label="Rechercher un élève" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></div><select aria-label="Filtrer par classe" className="class-select" value={classFilter} onChange={e => { setClassFilter(e.target.value); setPage(0); }}><option value="all">Toutes les classes</option>{classes.map(c => <option key={c}>{c}</option>)}</select></div>
               <div className="table-wrap"><table className="student-table"><thead><tr><th>DOSSARD</th><th>NOM & PRÉNOM</th><th>SEXE</th><th>CLASSE</th></tr></thead><tbody>{filtered.slice(currentPage * 8, currentPage * 8 + 8).map(s => <tr key={s.bib}><td><span className="bib-tag">{s.bib}</span></td><td><strong>{s.lastName.toUpperCase()}</strong><span className="ml-2 text-muted-foreground">{s.firstName}</span></td><td><span className={`sex-tag ${s.sex === 'F' ? 'female' : 'male'}`}>{s.sex}</span></td><td>{s.className}</td></tr>)}</tbody></table>
               {!filtered.length && <div className="empty-list"><span className="empty-list-icon"><Users size={28} strokeWidth={1.5} /></span><h3>{students.length ? 'Aucun élève trouvé' : 'La ligne de départ est encore vide'}</h3><p>{students.length ? 'Essayez un autre nom, dossard ou classe.' : 'Votre liste d’élèves apparaîtra ici après l’import.'}</p></div>}</div>
