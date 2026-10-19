@@ -15,7 +15,7 @@ import { readStudents, downloadTemplate } from '@/lib/students';
 import { createBibPdf } from '@/lib/bib-pdf';
 import { fetchRosterWithCache, isNetworkError } from '@/lib/offline';
 import { supabase } from '@/integrations/supabase/client';
-const mascotUrl = '/mascotte-cross.svg';
+const mascotUrl = '/mascotte-cross.png';
 
 export const Route = createFileRoute('/')({
   head: () => ({ meta: [
