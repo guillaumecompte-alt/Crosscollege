@@ -70,6 +70,10 @@ function Index() {
   async function importFile(file?: File) {
     if (!file || busy) return;
     setErrors([]);
+    setErrorTitle('Le fichier n’a pas été importé.');
+    setErrorDescription(students.length > 0
+      ? 'La liste enregistrée est conservée. Corrigez les lignes indiquées puis réessayez.'
+      : 'Corrigez les lignes indiquées puis réessayez.');
     if (!/\.(xlsx|xls)$/i.test(file.name)) { setErrors(['Choisissez un fichier Excel au format .xlsx ou .xls.']); return; }
     if (file.size > 20 * 1024 * 1024) { setErrors(['Le fichier dépasse 20 Mo.']); return; }
 
