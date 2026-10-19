@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Mascotte du cross</title>
+  <desc id="desc">Une silhouette de coureur en mouvement, dans un médaillon bleu et violet.</desc>
+  <defs>
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef3ff"/>
+      <stop offset="1" stop-color="#dce4ff"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8e72ff"/>
+      <stop offset="1" stop-color="#5735cf"/>
+    </linearGradient>
+  </defs>
+  <circle cx="80" cy="80" r="76" fill="url(#badge)" stroke="#7964e7" stroke-width="3"/>
+  <path d="M17 61h22M12 76h28M18 91h18" fill="none" stroke="#35a9d8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M119 100h17M123 114h13" fill="none" stroke="#8e72ff" stroke-width="4" stroke-linecap="round"/>
+  <path d="M58 132c20 4 45-2 60-17" fill="none" stroke="#b3bee7" stroke-width="4" stroke-linecap="round"/>
+  <path d="M79 53c10-7 23-1 28 9l-10 26-20-3-9-18z" fill="url(#shirt)" stroke="#18264c" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="83" cy="34" r="14" fill="#ffc27a" stroke="#18264c" stroke-width="4"/>
+  <path d="M69 33c1-14 16-21 27-13 4 3 6 7 6 11-7-4-13-8-20-7-3 4-7 7-13 9z" fill="#18264c"/>
+  <path d="M75 58 56 46 44 32" fill="none" stroke="#ffc27a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M75 58 56 46 44 32" fill="none" stroke="#18264c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 59 115 70 130 56" fill="none" stroke="#ffc27a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 59 115 70 130 56" fill="none" stroke="#18264c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M81 82 66 102 47 108" fill="none" stroke="#2455a7" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M81 82 66 102 47 108" fill="none" stroke="#18264c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M94 84 110 98 121 119" fill="none" stroke="#2455a7" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M94 84 110 98 121 119" fill="none" stroke="#18264c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 108 31 111" fill="none" stroke="#18264c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M120 119 133 122" fill="none" stroke="#18264c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M72 68c8 6 16 7 25 4" fill="none" stroke="#c4b6ff" stroke-width="3" stroke-linecap="round"/>
+</svg>
