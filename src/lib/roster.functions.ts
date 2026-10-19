@@ -61,3 +61,18 @@ export const saveRoster = createServerFn({ method: 'POST' })
     if (error) throw new Error("La liste n'a pas pu être enregistrée. Réessayez.");
     return { saved: saved ?? 0, expected: data.students.length };
   });
+
+
+// Clears only the signed-in user's student roster. The same authenticated RPC
+// used by imports replaces the saved list atomically with an empty list; race
+// records and results are intentionally left untouched.
+export const clearRoster = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { error } = await context.supabase.rpc('replace_roster', {
+      p_students: [],
+    });
+
+    if (error) throw new Error("La liste d'élèves n'a pas pu être effacée. Réessayez.");
+    return { cleared: true };
+  });
