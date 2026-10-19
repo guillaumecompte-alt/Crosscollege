@@ -15,7 +15,7 @@ import { readStudents, downloadTemplate } from '@/lib/students';
 import { createBibPdf } from '@/lib/bib-pdf';
 import { fetchRosterWithCache, isNetworkError } from '@/lib/offline';
 import { supabase } from '@/integrations/supabase/client';
-import mascot from '@/assets/mascotte-cross.png.asset.json';
+const mascotUrl = '/mascotte-cross.svg';
 
 export const Route = createFileRoute('/')({
   head: () => ({ meta: [
@@ -35,6 +35,8 @@ function Index() {
   const { session, loading } = useAuth();
   const queryClient = useQueryClient();
   const [errors, setErrors] = useState<string[]>([]);
+  const [errorTitle, setErrorTitle] = useState('Le fichier n’a pas été importé.');
+  const [errorDescription, setErrorDescription] = useState('Corrigez les lignes indiquées puis réessayez.');
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [printing, setPrinting] = useState(false);
@@ -101,7 +103,9 @@ function Index() {
 
   async function printBibs() {
     setPrinting(true); setErrors([]);
-    try { const pdf = await createBibPdf(filtered, perPage, mascot.url); pdf.save('dossards-cross.pdf'); }
+    setErrorTitle('Les dossards n’ont pas pu être générés.');
+    setErrorDescription('La liste enregistrée est conservée. Vérifiez le message ci-dessous puis réessayez.');
+    try { const pdf = await createBibPdf(filtered, perPage, mascotUrl); pdf.save('dossards-cross.pdf'); }
     catch (error) { setErrors([error instanceof Error ? error.message : 'Impossible de générer les dossards.']); }
     finally { setPrinting(false); }
   }
@@ -136,7 +140,7 @@ function Index() {
           <span className="save-time">{data?.savedAt ? `Sauvegardé le ${savedLabel(data.savedAt)}` : ''}</span>
         </div>
 
-        {errors.length > 0 && <section role="alert" className="error-panel mt-5"><div className="flex justify-between items-start gap-3"><div><strong>Le fichier n’a pas été importé.</strong><p className="text-sm mt-1">{students.length > 0 ? 'La liste enregistrée est conservée. ' : ''}Corrigez les lignes indiquées puis réessayez.</p></div><Button variant="ghost" size="icon" aria-label="Fermer les erreurs" onClick={() => setErrors([])}><X /></Button></div><ul className="text-sm mt-3 max-h-44 overflow-auto space-y-1">{errors.map((error, i) => <li key={i}>{error}</li>)}</ul></section>}
+        {errors.length > 0 && <section role="alert" className="error-panel mt-5"><div className="flex justify-between items-start gap-3"><div><strong>{errorTitle}</strong><p className="text-sm mt-1">{errorDescription}</p></div><Button variant="ghost" size="icon" aria-label="Fermer les erreurs" onClick={() => setErrors([])}><X /></Button></div><ul className="text-sm mt-3 max-h-44 overflow-auto space-y-1">{errors.map((error, i) => <li key={i}>{error}</li>)}</ul></section>}
 
         <div className="workspace-grid grid lg:grid-cols-[minmax(0,1fr)_340px] gap-8 mt-8">
           <div className="min-w-0">
@@ -162,13 +166,13 @@ function Index() {
           </div>
 
           <aside className="print-panel lg:border-l lg:border-border lg:pl-7"><div className="section-title-row"><h2>Les dossards</h2><Printer size={17} className="text-muted-foreground" /></div><div className="flex justify-between items-center text-xs mb-3"><span className="text-muted-foreground">Aperçu du dossard</span><span className="preview-label">{preview ? 'PRÊT À IMPRIMER' : 'EXEMPLE'}</span></div>
-            <div className="bib-preview"><div className="flex items-center justify-between"><img src={mascot.url} alt="Mascotte du cross" className="size-14 object-contain" /><span className="bib-event">CROSS DU COLLÈGE</span><span className="w-9" /></div><div className="bib-number">{preview?.bib ?? '001'}</div><div className="bib-name">{preview ? `${preview.lastName.toUpperCase()} ${preview.firstName}` : 'MARTIN Lucas'}</div><div className="bib-class">{preview?.className ?? '6e A'}</div></div>
+            <div className="bib-preview"><div className="flex items-center justify-between"><img src={mascotUrl} alt="Mascotte du cross" className="size-14 object-contain" /><span className="bib-event">CROSS DU COLLÈGE</span><span className="w-9" /></div><div className="bib-number">{preview?.bib ?? '001'}</div><div className="bib-name">{preview ? `${preview.lastName.toUpperCase()} ${preview.firstName}` : 'MARTIN Lucas'}</div><div className="bib-class">{preview?.className ?? '6e A'}</div></div>
             <div className="flex justify-center gap-1.5 text-[10px] text-muted-foreground mt-3"><span className="cut-line" />Repères de découpe inclus<span className="cut-line" /></div>
             <div className="mt-7"><label className="block text-xs font-semibold mb-3">Dossards par page A4</label><div className="grid grid-cols-2 gap-2">{([2, 4] as const).map(n => <Button key={n} variant="outline" onClick={() => setPerPage(n)} aria-pressed={perPage === n} className={`layout-option h-20 flex-col gap-2 ${perPage === n ? 'selected' : ''}`}><span className={`page-diagram diagram-${n}`}>{Array.from({ length: n }, (_, i) => <i key={i} />)}</span><span className="text-xs">{n} par page</span>{perPage === n && <Check className="layout-check" />}</Button>)}</div></div>
             <div className="print-summary mt-5 space-y-3"><div><span>Dossards à imprimer</span><strong>{filtered.length}</strong></div><div><span>Pages A4</span><strong>{Math.ceil(filtered.length / perPage)}</strong></div><div><span>Orientation</span><strong>{perPage === 4 ? 'Paysage' : 'Portrait'}</strong></div><div><span>Format de sortie</span><strong>PDF</strong></div></div>
             <Button disabled={!filtered.length || printing} onClick={() => void printBibs()} className="w-full h-11 mt-5">{printing ? <LoaderCircle className="animate-spin" /> : <Printer />}{printing ? 'Création du PDF…' : 'Générer les dossards PDF'}</Button>
             <p className="text-[11px] text-muted-foreground text-center mt-3">{students.length ? 'Les filtres de la liste s’appliquent à l’impression.' : 'Importez une liste pour préparer l’impression.'}</p>
-            <div className="mascot-note mt-8 flex gap-3 items-center border-t border-border pt-5"><img src={mascot.url} alt="" className="size-14 object-contain shrink-0" /><div><span className="text-xs font-bold">À chacun son dossard.</span><p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">À tous, le plaisir de courir.</p></div></div>
+            <div className="mascot-note mt-8 flex gap-3 items-center border-t border-border pt-5"><img src={mascotUrl} alt="" className="size-14 object-contain shrink-0" /><div><span className="text-xs font-bold">À chacun son dossard.</span><p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">À tous, le plaisir de courir.</p></div></div>
           </aside>
         </div>
       </>}
