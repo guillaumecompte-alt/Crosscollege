@@ -8,6 +8,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackupDialog } from "@/components/backup-dialog";
 
 export function AppHeader({
   active,
@@ -34,7 +35,8 @@ export function AppHeader({
             </span>
           </div>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <BackupDialog />
           <Link
             to="/aide"
             className={`help-header-link ${active === "help" ? "active" : ""}`}

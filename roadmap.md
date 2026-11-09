@@ -12,3 +12,4 @@
 - [x] Passer l’appli 100 % en local (RGPD) : plus de base de données Supabase, plus de connexion, plus de Google Fonts.
 - [x] Raccourci clavier ² pour enregistrer une arrivée.
 - [x] Saisie groupée des dossards (un par ligne) et mode d’emploi intégré.
+- [x] Sauvegarde / restauration en fichier JSON (bouton dans l’en-tête, rappel en fin de course).

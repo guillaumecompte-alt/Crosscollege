@@ -1038,3 +1038,28 @@ h2 {
   background: color-mix(in oklab, var(--primary) 7%, var(--card));
   font-size: 13px;
 }
+
+/* Sauvegarde */
+.backup-box {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+}
+.backup-warning {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 8%, transparent);
+  font-size: 13px;
+  line-height: 1.5;
+}
+@media (max-width: 639px) {
+  .help-header-link {
+    padding: 6px;
+    font-size: 0;
+    gap: 0;
+  }
+}

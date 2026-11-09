@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/app-header";
 import { BulkEntry } from "@/components/bulk-entry";
 import { formatTime } from "@/lib/results";
+import { downloadBackup } from "@/lib/backup";
+import { toast } from "sonner";
 import {
   addFinish,
   createRace,
@@ -117,8 +119,19 @@ function CoursePage() {
     updateRace({ started_at: new Date().toISOString(), ended_at: null });
   }
   function stop() {
-    if (confirm("Arrêter le chrono ? La course sera terminée."))
-      updateRace({ ended_at: new Date().toISOString() });
+    if (!confirm("Arrêter le chrono ? La course sera terminée.")) return;
+    updateRace({ ended_at: new Date().toISOString() });
+    toast("Course terminée. Pensez à faire une sauvegarde.", {
+      description: "Une copie des arrivées, au cas où l’ordinateur flanche.",
+      duration: 12000,
+      action: {
+        label: "Télécharger",
+        onClick: () => {
+          downloadBackup();
+          toast.success("Sauvegarde téléchargée.");
+        },
+      },
+    });
   }
   function arrival() {
     if (!race?.started_at) return;

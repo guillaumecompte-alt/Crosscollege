@@ -114,8 +114,12 @@ function HelpPage() {
               navigateur.
             </strong>{" "}
             Les données (élèves, courses, arrivées) sont enregistrées uniquement
-            sur cet appareil, rien n’est envoyé sur internet. Ne videz pas les
-            données de navigation du site avant d’avoir exporté les résultats.
+            sur cet appareil, rien n’est envoyé sur internet. Faites une{" "}
+            <a href="#sauvegarde" className="help-link">
+              sauvegarde
+            </a>{" "}
+            après chaque étape importante, et ne videz pas les données de
+            navigation du site.
           </p>
         </div>
 
@@ -304,6 +308,36 @@ function HelpPage() {
               arrivées au recto, le classement des classes au verso.
             </li>
           </ol>
+        </Section>
+
+        <Section id="sauvegarde" title="Sauvegarder et restaurer">
+          <p>
+            Le bouton <strong>Sauvegarde</strong>, en haut à droite, crée un
+            fichier qui contient tout : élèves, courses et arrivées.
+          </p>
+          <ul className="help-list">
+            <li>
+              <strong>Quand ?</strong> Après l’import de la liste, après chaque
+              course (un rappel s’affiche à la fin de course), et avant de
+              changer d’ordinateur.
+            </li>
+            <li>
+              <strong>Télécharger une sauvegarde</strong> : un fichier{" "}
+              <code>cross-college-sauvegarde-date-heure.json</code> arrive dans
+              vos téléchargements. Copiez-le sur une clé USB ou un Drive.
+            </li>
+            <li>
+              <strong>Restaurer</strong> : « Choisir un fichier… », vérifiez le
+              contenu affiché (nombre d’élèves, de courses, d’arrivées), puis «
+              Remplacer mes données ». Attention, tout ce qui est sur
+              l’ordinateur est remplacé ; un bouton « Annuler » permet de
+              revenir en arrière juste après.
+            </li>
+            <li>
+              <strong>Changer d’ordinateur</strong> : sauvegardez sur l’ancien,
+              ouvrez le site sur le nouveau, restaurez.
+            </li>
+          </ul>
         </Section>
 
         <Section id="raccourcis" title="Raccourcis clavier">

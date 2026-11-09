@@ -124,6 +124,11 @@ function RootComponent() {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
 
+  // Ask the browser never to evict the app's data on its own (low disk space…).
+  useEffect(() => {
+    void navigator.storage?.persist?.().catch(() => false);
+  }, []);
+
   return (
     <>
       <Outlet />
