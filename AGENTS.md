@@ -1,16 +1,11 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Notes pour les agents
+
+- Déploiement : Cloudflare Workers, Worker `crosscollege` (nom fixé dans `nitro.config.ts`). `bun run build` puis `wrangler deploy`.
+- Avant de pousser : `bun run lint`, `bun run test`, `bun run build`.
 
 ## Application architecture
-- **100 % local (RGPD)** : aucune base de données, aucun compte, aucun appel réseau vers un tiers. Ne pas réintroduire Supabase, Lovable Cloud, l'authentification, ni de polices/scripts chargés depuis un CDN externe (les polices viennent de `@fontsource`).
+
+- **100 % local (RGPD)** : aucune base de données, aucun compte, aucun appel réseau vers un tiers. Ne pas réintroduire de base de données distante (Supabase…), Lovable, l'authentification, ni de polices/scripts chargés depuis un CDN externe (les polices viennent de `@fontsource`).
 - Toutes les données (liste d'élèves, courses, arrivées) vivent dans le navigateur via `src/lib/local-store.ts` (une seule clé localStorage `cross-college:data:v1`, lue avec `useLocalData()` / `useSyncExternalStore`). Elles restent sur l'ordinateur utilisé ; vider les données du site les efface.
 - Au premier chargement, l'ancienne copie hors-ligne (`cross-offline:*`) est récupérée puis les clés de l'ancien système (`cross-offline:*`, `sb-*`) sont supprimées.
 - Keep Excel parsing and validation in a browser-safe student module; preserve supplied bib strings so formatted leading zeros are retained. A new import replaces the previous roster.
