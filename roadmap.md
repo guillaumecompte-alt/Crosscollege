@@ -1,4 +1,5 @@
 # Travail demandé
+
 - [x] Importer et contrôler une liste Excel d’élèves.
 - [x] Afficher et filtrer les élèves importés.
 - [x] Générer et vérifier les dossards PDF avec la mascotte fournie.
