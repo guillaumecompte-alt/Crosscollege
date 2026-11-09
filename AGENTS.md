@@ -13,3 +13,5 @@
 - Header navigation is a shared component; Results tab exports a 2-sheet Excel (raw arrivals, per-class ranking keeping global position) client-side. Races store start/end timestamps so the chrono survives reloads; elapsed time is derived from started_at, and finishes record position + elapsed ms with the bib entered afterwards.
 - Results PDF generation stays browser-side with dynamic jsPDF and canvas-rendered Unicode tables; interleave independently paginated arrivals on odd pages and class rankings on even pages for long-edge duplex printing, and keep score calculation in the browser-safe results module.
 - `public/sw.js` is a network-first runtime cache for the app shell only, so the app opens without network.
+- Saisie groupée (onglet Course) : un dossard par ligne, associé dans l'ordre aux arrivées (`src/lib/bulk-bibs.ts`, logique pure testée). Les lignes en trop créent des arrivées **sans temps** (`elapsed_ms: null`, affiché « — » ; la vitesse reste vide). « ? » ou « - » = coureur non identifié.
+- Mode d'emploi intégré : route `/aide` (lien dans l'en-tête et « Comment ça marche ? » sur chaque onglet). Le tenir à jour quand une fonctionnalité change.

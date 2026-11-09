@@ -46,7 +46,7 @@ export function resultPdfPages(rows: ResultRow[], distance: string) {
           s?.firstName ?? "",
           s?.sex ?? "",
           s?.className ?? "",
-          km && f.elapsed_ms > 0
+          km && f.elapsed_ms && f.elapsed_ms > 0
             ? (km / (f.elapsed_ms / 3600000)).toFixed(2)
             : "—",
         ],

@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  CircleHelp,
   Flag,
+  ListOrdered,
   LoaderCircle,
   Play,
   Plus,
@@ -13,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppHeader } from "@/components/app-header";
+import { BulkEntry } from "@/components/bulk-entry";
 import { formatTime } from "@/lib/results";
 import {
   addFinish,
@@ -55,6 +58,7 @@ function CoursePage() {
   const local = useLocalData();
   const races = racesOf(local);
   const [raceId, setRaceId] = useState<string | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const race = races.find((r) => r.id === raceId) ?? races[0];
   const list = finishesOf(local, race?.id);
   const [now, setNow] = useState(Date.now());
@@ -104,6 +108,7 @@ function CoursePage() {
 
   function newRace() {
     setRaceId(createRace().id);
+    setBulkOpen(false);
   }
   function updateRace(patch: Partial<Race>) {
     if (race) updateLocalRace(race.id, patch);
@@ -175,7 +180,11 @@ function CoursePage() {
           </div>
           <h1 className="mt-2">La course</h1>
           <p className="text-muted-foreground text-sm mt-2">
-            Lancez le chrono, cliquez à chaque arrivée, saisissez le dossard.
+            Lancez le chrono, enregistrez chaque arrivée (bouton ou touche ²),
+            puis saisissez les dossards un par un ou tous d’un coup.{" "}
+            <Link to="/aide" hash="course" className="help-link">
+              <CircleHelp size={14} /> Comment ça marche ?
+            </Link>
           </p>
         </section>
 
@@ -205,7 +214,10 @@ function CoursePage() {
                 className="class-select"
                 style={{ maxWidth: 260 }}
                 value={race.id}
-                onChange={(e) => setRaceId(e.target.value)}
+                onChange={(e) => {
+                  setRaceId(e.target.value);
+                  setBulkOpen(false);
+                }}
                 aria-label="Choisir la course"
               >
                 {races.map((r) => (
@@ -218,6 +230,15 @@ function CoursePage() {
               <Button variant="outline" size="sm" onClick={newRace}>
                 <Plus />
                 Nouvelle course
+              </Button>
+              <Button
+                variant={bulkOpen ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setBulkOpen((open) => !open)}
+                aria-expanded={bulkOpen}
+              >
+                <ListOrdered />
+                Saisie groupée
               </Button>
               <Button
                 variant="outline"
@@ -301,6 +322,16 @@ function CoursePage() {
                 </Button>
               </div>
             </div>
+
+            {bulkOpen && (
+              <BulkEntry
+                key={race.id}
+                raceId={race.id}
+                finishes={list}
+                students={local.roster.students}
+                onClose={() => setBulkOpen(false)}
+              />
+            )}
 
             <div className="table-wrap mt-5">
               <table className="student-table">

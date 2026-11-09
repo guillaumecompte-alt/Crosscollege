@@ -21,7 +21,8 @@ export type Finish = {
   id: string;
   race_id: string;
   position: number;
-  elapsed_ms: number;
+  /** null = arrival recorded without a time (bulk entry, race without clock). */
+  elapsed_ms: number | null;
   bib: string | null;
 };
 
@@ -237,4 +238,56 @@ export function setFinishBib(id: string, bib: string | null) {
 
 export function removeFinish(id: string) {
   write((d) => ({ ...d, finishes: d.finishes.filter((f) => f.id !== id) }));
+}
+
+// ---- Bulk entry -------------------------------------------------------------
+
+type BulkPlanLike = {
+  lines: {
+    action: string;
+    bib: string | null;
+    finishId: string | null;
+    position: number;
+    error?: string;
+  }[];
+};
+
+/** Applies a bulk-entry plan in one write; returns the previous arrivals for undo. */
+export function applyBulkPlan(raceId: string, plan: BulkPlanLike): Finish[] {
+  let previous: Finish[] = [];
+  write((d) => {
+    previous = d.finishes.filter((f) => f.race_id === raceId);
+    const updates = new Map(
+      plan.lines
+        .filter((l) => l.action === "set" && l.finishId && !l.error)
+        .map((l) => [l.finishId!, l.bib]),
+    );
+    const created: Finish[] = plan.lines
+      .filter((l) => l.action === "create" && !l.error)
+      .map((l) => ({
+        id: newId(),
+        race_id: raceId,
+        position: l.position,
+        elapsed_ms: null,
+        bib: l.bib,
+      }));
+    return {
+      ...d,
+      finishes: [
+        ...d.finishes.map((f) =>
+          updates.has(f.id) ? { ...f, bib: updates.get(f.id) ?? null } : f,
+        ),
+        ...created,
+      ],
+    };
+  });
+  return previous;
+}
+
+/** Puts back a race's arrivals exactly as they were (undo of a bulk entry). */
+export function restoreRaceFinishes(raceId: string, finishes: Finish[]) {
+  write((d) => ({
+    ...d,
+    finishes: [...d.finishes.filter((f) => f.race_id !== raceId), ...finishes],
+  }));
 }
