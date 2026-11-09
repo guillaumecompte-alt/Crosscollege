@@ -49,6 +49,8 @@ export const Route = createFileRoute("/course")({
   component: CoursePage,
 });
 
+const ARRIVAL_KEY = "²";
+
 function CoursePage() {
   const local = useLocalData();
   const races = racesOf(local);
@@ -117,6 +119,31 @@ function CoursePage() {
     if (!race?.started_at) return;
     addFinish(race.id, Date.now() - Date.parse(race.started_at));
   }
+
+  // Keyboard shortcut: the ² key (top-left on French keyboards) records an
+  // arrival, even while a bib field has focus. Held keys don't repeat.
+  const [keyFlash, setKeyFlash] = useState(false);
+  const startedAt = race?.started_at;
+  const runningRaceId = running ? race?.id : undefined;
+  useEffect(() => {
+    if (!runningRaceId || !startedAt) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== ARRIVAL_KEY && event.code !== "Backquote") return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const typing =
+        target?.closest("input, textarea, select, [contenteditable]") &&
+        !target.classList.contains("bib-input");
+      if (typing) return;
+      event.preventDefault();
+      if (event.repeat) return;
+      addFinish(runningRaceId, Date.now() - Date.parse(startedAt));
+      setKeyFlash(true);
+      window.setTimeout(() => setKeyFlash(false), 150);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [runningRaceId, startedAt]);
   function setBib(f: Finish, bib: string) {
     const value = bib.trim() || null;
     if (value !== f.bib) setFinishBib(f.id, value);
@@ -247,15 +274,22 @@ function CoursePage() {
                   <Play />
                   Départ course
                 </Button>
-                <Button
-                  size="lg"
-                  className="arrival-btn"
-                  onClick={arrival}
-                  disabled={!running}
-                >
-                  <UserCheck />
-                  Arrivée coureur
-                </Button>
+                <div className="arrival-wrap">
+                  <span className="key-hint" aria-hidden="true">
+                    Raccourci : touche <kbd>{ARRIVAL_KEY}</kbd>
+                  </span>
+                  <Button
+                    size="lg"
+                    className={`arrival-btn ${keyFlash ? "key-pressed" : ""}`}
+                    onClick={arrival}
+                    disabled={!running}
+                    aria-keyshortcuts={ARRIVAL_KEY}
+                    title={`Raccourci clavier : touche ${ARRIVAL_KEY}`}
+                  >
+                    <UserCheck />
+                    Arrivée coureur
+                  </Button>
+                </div>
                 <Button
                   size="lg"
                   variant="destructive"

@@ -731,6 +731,43 @@ h2 {
   background: var(--success);
   opacity: 0.9;
 }
+.arrival-btn.key-pressed {
+  transform: scale(0.96);
+  filter: brightness(1.15);
+}
+.arrival-wrap {
+  position: relative;
+  display: flex;
+}
+.arrival-wrap > .arrival-btn {
+  flex: 1;
+}
+.key-hint {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  opacity: 0.65;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.key-hint kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  vertical-align: middle;
+}
 .bib-input {
   width: 80px;
   height: 32px;
@@ -750,5 +787,8 @@ h2 {
   }
   .race-actions > * {
     flex: 1;
+  }
+  .key-hint {
+    display: none;
   }
 }
