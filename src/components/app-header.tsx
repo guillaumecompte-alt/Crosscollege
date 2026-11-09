@@ -1,11 +1,18 @@
 import { Link } from "@tanstack/react-router";
-import { FileSpreadsheet, Flag, HardDrive, Timer, Trophy } from "lucide-react";
+import {
+  CircleHelp,
+  FileSpreadsheet,
+  Flag,
+  HardDrive,
+  Timer,
+  Trophy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AppHeader({
   active,
 }: {
-  active: "import" | "course" | "results";
+  active: "import" | "course" | "results" | "help";
 }) {
   return (
     <header className="site-header bg-card border-b border-border">
@@ -27,13 +34,22 @@ export function AppHeader({
             </span>
           </div>
         </Link>
-        <span
-          className="account-chip"
-          title="Les données restent dans ce navigateur, sur cet ordinateur. Rien n’est envoyé sur internet."
-        >
-          <HardDrive size={12} className="shrink-0" />
-          Données locales
-        </span>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/aide"
+            className={`help-header-link ${active === "help" ? "active" : ""}`}
+          >
+            <CircleHelp size={15} />
+            Mode d’emploi
+          </Link>
+          <span
+            className="account-chip hidden sm:inline-flex"
+            title="Les données restent dans ce navigateur, sur cet ordinateur. Rien n’est envoyé sur internet."
+          >
+            <HardDrive size={12} className="shrink-0" />
+            Données locales
+          </span>
+        </div>
       </div>
       <nav
         className="page-container flex gap-5 sm:gap-10"

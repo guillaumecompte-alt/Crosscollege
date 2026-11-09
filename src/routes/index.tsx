@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
+  CircleHelp,
   HardDrive,
   LoaderCircle,
   Printer,
@@ -225,7 +226,10 @@ function Index() {
             </div>
             <h1 className="mt-2">La liste des participants</h1>
             <p className="text-muted-foreground text-sm mt-2">
-              Les élèves, leurs classes, leurs dossards. Tout commence ici.
+              Les élèves, leurs classes, leurs dossards. Tout commence ici.{" "}
+              <Link to="/aide" hash="liste" className="help-link">
+                <CircleHelp size={14} /> Comment ça marche ?
+              </Link>
             </p>
           </div>
           <span className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground mb-1">
@@ -237,6 +241,19 @@ function Index() {
           <div className="loading-strip">
             <LoaderCircle className="animate-spin" size={18} /> Chargement de
             votre liste…
+          </div>
+        )}
+
+        {ready && students.length === 0 && !local?.races.length && (
+          <div className="help-banner" role="note">
+            <CircleHelp size={20} className="shrink-0 text-primary" />
+            <span>
+              <strong>Première utilisation ?</strong> Le mode d’emploi explique
+              tout le cross en 5 étapes, de la liste Excel aux résultats.
+            </span>
+            <Button asChild size="sm" className="ml-auto">
+              <Link to="/aide">Lire le mode d’emploi</Link>
+            </Button>
           </div>
         )}
 

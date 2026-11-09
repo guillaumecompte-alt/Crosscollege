@@ -1,7 +1,12 @@
 import type { Student } from "./students";
 
 export type ResultRow = {
-  f: { id: string; position: number; elapsed_ms: number; bib: string | null };
+  f: {
+    id: string;
+    position: number;
+    elapsed_ms: number | null;
+    bib: string | null;
+  };
   s?: Student | undefined;
 };
 export type ClassResult = {
@@ -47,7 +52,9 @@ export function rankClasses(rows: ResultRow[]): ClassResult[] {
   }));
 }
 
-export function formatTime(ms: number) {
+/** Formats a race time; arrivals recorded without a time show a dash. */
+export function formatTime(ms: number | null) {
+  if (ms === null) return "—";
   const t = Math.max(0, Math.floor(ms / 100));
   const pad = (n: number) => String(n).padStart(2, "0");
   const h = Math.floor(t / 36000);

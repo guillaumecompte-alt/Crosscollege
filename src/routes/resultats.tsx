@@ -1,7 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Download, FileText, LoaderCircle, Trophy } from "lucide-react";
+import {
+  CircleHelp,
+  Download,
+  FileText,
+  LoaderCircle,
+  Trophy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/app-header";
 import { finishesOf, racesOf, useLocalData } from "@/lib/local-store";
@@ -109,7 +115,9 @@ function ResultsPage() {
         s?.firstName ?? "",
         s?.sex ?? "",
         s?.className ?? "",
-        km && f.elapsed_ms > 0 ? km / (f.elapsed_ms / 3600000) : "",
+        km && f.elapsed_ms && f.elapsed_ms > 0
+          ? km / (f.elapsed_ms / 3600000)
+          : "",
       ]);
       r.getCell(8).numFmt = "0.00";
     });
@@ -209,7 +217,10 @@ function ResultsPage() {
           </div>
           <h1 className="mt-2">Résultats</h1>
           <p className="text-muted-foreground text-sm mt-2">
-            Choisissez une course et exportez le classement en Excel.
+            Choisissez une course et exportez le classement en Excel ou en PDF.{" "}
+            <Link to="/aide" hash="resultats" className="help-link">
+              <CircleHelp size={14} /> Comment ça marche ?
+            </Link>
           </p>
         </section>
         {!local && (
