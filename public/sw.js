@@ -1,16 +1,18 @@
 // Offline shell: serves the app's pages and assets from cache when the network
-// is down. Server functions and database calls are never cached here — data
-// offline support lives in the app's localStorage snapshot (src/lib/offline.ts).
-const CACHE = 'cross-du-college-v1';
+// is down. All app data lives in the browser (src/lib/local-store.ts).
+const CACHE = 'cross-du-college-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('activate', (event) => event.waitUntil((async () => {
+  for (const name of await caches.keys()) if (name !== CACHE) await caches.delete(name);
+  await self.clients.claim();
+})()));
 
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return; // database, fonts, auth: untouched
+  if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/') || url.pathname.includes('serverFn')) return;
 
   event.respondWith((async () => {

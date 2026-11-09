@@ -1,17 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
-import { useServerFn } from '@tanstack/react-start';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Download, FileText, LoaderCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AuthPanel } from '@/components/auth-panel';
 import { AppHeader } from '@/components/app-header';
-import { OfflineBanner } from '@/components/offline-banner';
-import { useAuth } from '@/hooks/useAuth';
-import { getRoster } from '@/lib/roster.functions';
-import { fetchFinishesWithCache, fetchRacesWithCache, fetchRosterWithCache, type OfflineFinish, type OfflineRace } from '@/lib/offline';
-import { rankClasses } from '@/lib/results';
+import { finishesOf, racesOf, useLocalData } from '@/lib/local-store';
+import { distanceKm as parseKm, formatTime as fmt, rankClasses } from '@/lib/results';
 import { createResultsPdf } from '@/lib/results-pdf';
 
 export const Route = createFileRoute('/resultats')({
@@ -26,44 +20,20 @@ export const Route = createFileRoute('/resultats')({
   component: ResultsPage,
 });
 
-const fmt = (ms: number) => {
-  const t = Math.max(0, Math.floor(ms / 100));
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const h = Math.floor(t / 36000);
-  return `${h ? `${h}:` : ''}${pad(Math.floor(t / 600) % 60)}:${pad(Math.floor(t / 10) % 60)}.${t % 10}`;
-};
 const norm = (b: string) => b.trim().replace(/^0+(?=\d)/, '');
-// "2 km", "1500 m", "1,8" → km. A bare number above 50 is read as meters.
-const parseKm = (d: string) => {
-  const m = d.toLowerCase().replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(km|m)?/);
-  if (!m) return 0;
-  const n = parseFloat(m[1] ?? '0');
-  return m[2] === 'km' ? n : m[2] === 'm' || n > 50 ? n / 1000 : n;
-};
 
 function ResultsPage() {
-  const { session, loading } = useAuth();
-  const fetchRoster = useServerFn(getRoster);
-  const roster = useQuery({
-    queryKey: ['roster', session?.user.id ?? 'anon'], enabled: !!session,
-    queryFn: () => fetchRosterWithCache(session!.user.id, () => fetchRoster()),
-  });
-  const races = useQuery({
-    queryKey: ['races', session?.user.id], enabled: !!session,
-    queryFn: () => fetchRacesWithCache(session!.user.id),
-  });
+  const local = useLocalData();
+  const races = racesOf(local);
   const [raceId, setRaceId] = useState<string | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
-  const race = races.data?.find(r => r.id === raceId) ?? races.data?.[0];
-  const finishes = useQuery({
-    queryKey: ['finishes', race?.id], enabled: !!race,
-    queryFn: () => fetchFinishesWithCache(session!.user.id, race!.id),
-  });
+  const race = races.find(r => r.id === raceId) ?? races[0];
+  const finishes = useMemo(() => finishesOf(local, race?.id), [local, race?.id]);
 
   const rows = useMemo(() => {
-    const map = new Map((roster.data?.students ?? []).map(s => [norm(s.bib), s]));
-    return (finishes.data ?? []).map((f: OfflineFinish) => ({ f, s: f.bib ? map.get(norm(f.bib)) : undefined }));
-  }, [roster.data, finishes.data]);
+    const map = new Map((local?.roster.students ?? []).map(s => [norm(s.bib), s]));
+    return finishes.map(f => ({ f, s: f.bib ? map.get(norm(f.bib)) : undefined }));
+  }, [local?.roster, finishes]);
 
   const byClass = useMemo(() => {
     const g = new Map<string, typeof rows>();
@@ -128,24 +98,22 @@ function ResultsPage() {
   }
 
   return <div className="min-h-screen bg-background text-foreground">
-    <AppHeader session={session} active="results" />
-    <OfflineBanner />
+    <AppHeader active="results" />
     <main className="page-container pb-12">
       <section className="page-heading pt-10 pb-7">
         <div className="eyebrow"><span className="text-primary">03</span><span className="eyebrow-line" /> LE PALMARÈS</div>
         <h1 className="mt-2">Résultats</h1>
         <p className="text-muted-foreground text-sm mt-2">Choisissez une course et exportez le classement en Excel.</p>
       </section>
-      {loading && <div className="loading-strip"><LoaderCircle className="animate-spin" size={18} /> Ouverture de votre espace…</div>}
-      {!loading && !session && <AuthPanel />}
-      {session && races.data && !race && <div className="table-wrap empty-list"><Trophy className="empty-list-icon" size={34} /><h3>Aucune course</h3><p>Créez une course dans l’onglet Course.</p></div>}
-      {session && race && <>
+      {!local && <div className="loading-strip"><LoaderCircle className="animate-spin" size={18} /> Chargement des résultats…</div>}
+      {local && !race && <div className="table-wrap empty-list"><Trophy className="empty-list-icon" size={34} /><h3>Aucune course</h3><p>Créez une course dans l’onglet Course.</p></div>}
+      {local && race && <>
         <div className="flex flex-wrap items-center gap-2 mb-5">
           <select className="class-select" style={{ maxWidth: 280 }} value={race.id} onChange={e => setRaceId(e.target.value)} aria-label="Choisir la course">
-             {races.data?.map(r => <option key={r.id} value={r.id}>{r.title || 'Course sans titre'}{r.distance ? ` · ${r.distance}` : ''}</option>)}
+             {races.map(r => <option key={r.id} value={r.id}>{r.title || 'Course sans titre'}{r.distance ? ` · ${r.distance}` : ''}</option>)}
           </select>
           <Button className="ml-auto" onClick={exportXlsx} disabled={!rows.length}><Download />Exporter en Excel</Button>
-          <Button variant="outline" onClick={exportPdf} disabled={!rows.length || pdfBusy || roster.isPending || finishes.isFetching}>
+          <Button variant="outline" onClick={exportPdf} disabled={!rows.length || pdfBusy}>
             {pdfBusy ? <LoaderCircle className="animate-spin" /> : <FileText />}{pdfBusy ? 'Création du PDF…' : 'Exporter en PDF'}
           </Button>
         </div>
