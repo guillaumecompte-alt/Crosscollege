@@ -1,18 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { FileSpreadsheet, Flag, Lock, LogOut, Timer, Trophy } from 'lucide-react';
-import type { Session } from '@supabase/supabase-js';
+import { FileSpreadsheet, Flag, HardDrive, Timer, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 
-export function AppHeader({ session, active }: { session: Session | null; active: 'import' | 'course' | 'results' }) {
-  const email = session?.user.email ?? '';
+export function AppHeader({ active }: { active: 'import' | 'course' | 'results' }) {
   return <header className="site-header bg-card border-b border-border">
     <div className="page-container flex items-center justify-between gap-4 py-5">
       <Link to="/" className="flex items-center gap-3" aria-label="Cross du collège, accueil"><span className="brand-icon"><Flag size={23} strokeWidth={2.3} /></span><div className="leading-tight"><span className="brand-title">CROSS<span className="text-primary">.</span></span><span className="block text-[11px] font-semibold text-muted-foreground mt-1">DU COLLÈGE</span></div></Link>
-      {session ? <div className="flex items-center gap-2 min-w-0">
-        <span className="account-chip" title={email}><Lock size={12} className="shrink-0" />{email}</span>
-        <Button variant="ghost" size="sm" className="text-muted-foreground shrink-0" onClick={() => void supabase.auth.signOut()}><LogOut />Se déconnecter</Button>
-      </div> : <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><span className="status-dot" /><span>Édition 2026</span></div>}
+      <span className="account-chip" title="Les données restent dans ce navigateur, sur cet ordinateur. Rien n’est envoyé sur internet."><HardDrive size={12} className="shrink-0" />Données locales</span>
     </div>
     <nav className="page-container flex gap-5 sm:gap-10" aria-label="Étapes du cross">
       <Button asChild variant="ghost" className={`nav-tab ${active === 'import' ? 'active' : ''}`}><Link to="/"><FileSpreadsheet /><span>Import Liste</span><span className="step-number">01</span></Link></Button>
