@@ -291,3 +291,33 @@ export function restoreRaceFinishes(raceId: string, finishes: Finish[]) {
     finishes: [...d.finishes.filter((f) => f.race_id !== raceId), ...finishes],
   }));
 }
+
+// ---- Backup / restore -------------------------------------------------------
+
+const LAST_BACKUP_KEY = "cross-college:last-backup";
+
+/** Current data, read straight from storage (for exporting a backup). */
+export function getLocalData(): LocalData {
+  return read();
+}
+
+/** Replaces everything (students, races, arrivals) with a restored backup. */
+export function replaceAllData(data: LocalData) {
+  write(() => data);
+}
+
+export function markBackupDone(at = new Date().toISOString()) {
+  try {
+    window.localStorage.setItem(LAST_BACKUP_KEY, at);
+  } catch {
+    /* not critical */
+  }
+}
+
+export function lastBackupAt(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_BACKUP_KEY);
+  } catch {
+    return null;
+  }
+}
